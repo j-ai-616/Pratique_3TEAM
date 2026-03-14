@@ -176,7 +176,7 @@
   <img src="https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord">
   <img src="https://img.shields.io/badge/Notion-5F5F5F?style=for-the-badge&logo=notion&logoColor=white" alt="Notion">
   <img src="https://img.shields.io/badge/Google%20Drive-34A853?style=for-the-badge&logo=googledrive&logoColor=white" alt="Google Drive">
-  <img src="https://img.shields.io/badge/VS%20Code-0098FF?style=for-the-badge&logo=visualstudiocode&logoColor=white" alt="VS Code">
+  <img src="https://img.shields.io/badge/VS%20Code-0098FF?style=for-the-badge&logo=visual-studio-code&logoColor=white" alt="VS Code">
 </p>
 
 ---
