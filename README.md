@@ -89,13 +89,7 @@
 │  ├─ project_description.md    # 프로젝트 기획/설명 문서
 │  └─ images/			        # README.md 에 사용할 이미지 파일
 │       ├─ 1_team_introduction.png
-│       ├─ 7_together.png
-│       ├─ Git.svg
-│       ├─ GitHub.svg
-│       ├─ MySQL.svg
-│       ├─ pandas.svg
-│       ├─ Python.svg
-│       └─ Streamlit.svg
+│       └─ 7_together.png
 └─ src/
    ├─ app/
    │  └─ main_app.py            # Streamlit 메인 실행 파일
@@ -122,7 +116,7 @@
 
 ## 🛠️ 기술 스택
 
-![Python](.docs/images/Python.svg) ![Git](.docs/images/Git.svg) ![GitHub](.docs/images/GitHub.svg) ![Pandas](.docs/images/pandas.svg) ![MySQL](.docs/images/MySQL.svg) ![Streamlit](.docs/images/Streamlit.svg)
+![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=Git&logoColor=white) ![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=GitHub&logoColor=white) ![Notion](https://img.shields.io/badge/Notion-000000?style=for-the-badge&logo=Notion&logoColor=white) ![Google Drive](https://img.shields.io/badge/Google%20Drive-4285F4?style=for-the-badge&logo=Google%20Drive&logoColor=white) ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=Python&logoColor=white) ![VS Code](https://img.shields.io/badge/VS%20Code-007ACC?style=for-the-badge&logo=visualstudiocode&logoColor=white) ![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=MySQL&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-%23FE4B4B.svg?style=for-the-badge&logo=streamlit&logoColor=white)
 
 ---
 
