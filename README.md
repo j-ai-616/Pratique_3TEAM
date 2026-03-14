@@ -168,15 +168,15 @@
 ## 🛠 기술 스택 및 협업 도구
 
 <p>
-  <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=Git&logoColor=white" alt="Git">
-  <img src="https://img.shields.io/badge/GitHub-24292F?style=for-the-badge&logo=GitHub&logoColor=white" alt="GitHub">
-  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=Python&logoColor=white" alt="Python">
-  <img src="https://img.shields.io/badge/MySQL-0F4C81?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL">
+  <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white" alt="Git">
+  <img src="https://img.shields.io/badge/GitHub-24292F?style=for-the-badge&logo=github&logoColor=white" alt="GitHub">
+  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/MySQL-005C84?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL">
   <img src="https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white" alt="Streamlit"><br>
   <img src="https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord">
-  <img src="https://img.shields.io/badge/Notion-5A5A5A?style=for-the-badge&logo=notion&logoColor=white" alt="Notion">
-  <img src="https://img.shields.io/badge/Google%20Drive-16A765?style=for-the-badge&logo=googledrive&logoColor=white" alt="Google Drive">
-  <img src="https://img.shields.io/badge/VS%20Code-0078D4?style=for-the-badge&logo=visualstudiocode&logoColor=white" alt="VS Code">
+  <img src="https://img.shields.io/badge/Notion-5F5F5F?style=for-the-badge&logo=notion&logoColor=white" alt="Notion">
+  <img src="https://img.shields.io/badge/Google%20Drive-34A853?style=for-the-badge&logo=googledrive&logoColor=white" alt="Google Drive">
+  <img src="https://img.shields.io/badge/VS%20Code-0098FF?style=for-the-badge&logo=visualstudiocode&logoColor=white" alt="VS Code">
 </p>
 
 ---
