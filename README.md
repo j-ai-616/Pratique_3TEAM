@@ -1,4 +1,4 @@
-# 🚘 전기차 전환 시대, 지역별 전기차 이용 환경 분석 및 정보 제공 시스템
+# 전기차 전환 시대, 지역별 전기차 이용 환경 분석 및 정보 제공 시스템
 
 > 전기차 등록 현황, 충전소 인프라, 정책/FAQ 정보를 한곳에서 확인할 수 있는 데이터 기반 정보 제공 시스템  
 > 본 문서는 프로젝트 진행 상황에 맞춰 지속적으로 업데이트됩니다.
@@ -166,23 +166,16 @@
 
 ## 🛠 기술 스택 및 협업 도구
 
-<p>
-  <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=Git&logoColor=white" alt="Git">
-  <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=GitHub&logoColor=white" alt="GitHub">
-  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=Python&logoColor=white" alt="Python">
-  <img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=MySQL&logoColor=white" alt="MySQL">
-  <img src="https://img.shields.io/badge/Streamlit-FE4B4B?style=for-the-badge&logo=streamlit&logoColor=white" alt="Streamlit">
-  <img src="https://img.shields.io/badge/Notion-000000?style=for-the-badge&logo=Notion&logoColor=white" alt="Notion">
-  <img src="https://img.shields.io/badge/Google%20Drive-4285F4?style=for-the-badge&logo=GoogleDrive&logoColor=white" alt="Google Drive">
-  <img src="https://img.shields.io/badge/VS%20Code-007ACC?style=for-the-badge&logo=visualstudiocode&logoColor=white" alt="VS Code">
-</p>
+![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=Git&logoColor=white) ![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=GitHub&logoColor=white) ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=Python&logoColor=white) ![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=MySQL&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-%23FE4B4B.svg?style=for-the-badge&logo=streamlit&logoColor=white) 
+![Notion](https://img.shields.io/badge/Notion-000000?style=for-the-badge&logo=Notion&logoColor=white) ![Google Drive](https://img.shields.io/badge/Google%20Drive-4285F4?style=for-the-badge&logo=Google%20Drive&logoColor=white) ![VS Code](https://img.shields.io/badge/VS%20Code-007ACC?style=for-the-badge&logo=visualstudiocode&logoColor=white) 
+
 
 ---
 
 ## ✅ 요구사항 명세서
 
 | No | 요구사항명 | 구현 여부 | 우선순위 | 상세 설명 | 비고 |
-|:--:|:---|:---:|:---:|:---|:---|
+|-----|-----|------|-----|-----|-----|
 | 1 | 지역별 전기차 등록 현황 제공 | 진행중 | 상 | 지역별 전기차 등록 데이터 수집 및 시각화 |  |
 | 2 | 충전소 위치 조회 | 진행중 | 상 | 카카오맵 기반 충전소 위치 제공 |  |
 | 3 | 충전기 상세 정보 제공 | 진행중 | 상 | 충전 가능 여부, 충전기 정보 제공 |  |
@@ -194,9 +187,9 @@
 
 ## 🚀 실행 방법
 
-~~~bash
+~~bash
 # 1. 저장소 클론
-git clone <repository_url>
+git clone https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN28-1st-3TEAM.git
 
 # 2. 폴더 이동
 cd TeamProject01_car1
@@ -213,7 +206,6 @@ pip install -r requirements.txt
 
 # 6. Streamlit 실행
 streamlit run src/app/main_app.py
-~~~
 
 ---
 
