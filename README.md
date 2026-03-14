@@ -163,7 +163,7 @@
    │
    └─ utils/
       └─ helpers.py             # 공통 유틸 함수
-````
+```
 
 ## 🛠 기술 스택 및 협업 도구
 
@@ -189,23 +189,23 @@
 ## 🚀 실행 방법
 
 ~~bash
-# 1. 저장소 클론
-git clone https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN28-1st-3TEAM.git
+### 1. 저장소 클론
+git clone <.git 주소>
 
-# 2. 폴더 이동
+### 2. 폴더 이동
 cd TeamProject01_car1
 
-# 3. 가상환경 생성 및 활성화
+### 3. 가상환경 생성 및 활성화
 conda create -n car1_env python=3.12
 conda activate car1_env
 
-# 4. 패키지 설치
+### 4. 패키지 설치
 pip install -r requirements.txt
 
-# 5. .env 파일 작성
-# .env.example 참고하여 환경변수 설정
+### 5. .env 파일 작성
+.env.example 참고하여 환경변수 설정
 
-# 6. Streamlit 실행
+### 6. Streamlit 실행
 streamlit run src/app/main_app.py
 
 ---
