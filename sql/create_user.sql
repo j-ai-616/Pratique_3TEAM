@@ -1,4 +1,4 @@
--- Active: 1773024750352@@127.0.0.1@3306@mysql
+-- Active: 1773024750352@@127.0.0.1@3306@car1_db
 # 새로운 계정 생성 (User: car1_user / PW: Team3Car1)
 CREATE DATABASE IF NOT EXISTS car1_db
 DEFAULT CHARACTER SET utf8mb4

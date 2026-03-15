@@ -1,194 +1,134 @@
+# src/db/insert_data.py
+
 from pathlib import Path
 import pandas as pd
-import pymysql
+from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 import os
 
-# --------------------------------------------------
-# 환경변수 로드
-# --------------------------------------------------
-load_dotenv()
 
-DB_HOST = os.getenv("MYSQL_HOST", "localhost")
-DB_PORT = int(os.getenv("MYSQL_PORT", 3306))
-DB_USER = os.getenv("MYSQL_USER", "root")
-DB_PASSWORD = os.getenv("MYSQL_PASSWORD", "")
-DB_NAME = os.getenv("MYSQL_DATABASE", "car1_db")
-
-# --------------------------------------------------
-# 경로 설정
-# --------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parents[2]
-STATION_FILE = BASE_DIR / "data" / "processed" / "charger" / "charger_station.csv"
-CHARGER_FILE = BASE_DIR / "data" / "processed" / "charger" / "charger_charger.csv"
+PROCESSED_DIR = BASE_DIR / "data" / "processed"
+PROCESSED_EV_DIR = PROCESSED_DIR / "ev_registration"
+
+WIDE_FILE = PROCESSED_EV_DIR / "ev_registration_monthly_wide.csv"
+LONG_FILE = PROCESSED_EV_DIR / "ev_registration_monthly_long.csv"
 
 
-# --------------------------------------------------
-# DB 연결
-# --------------------------------------------------
-def get_connection():
-    return pymysql.connect(
-        host=DB_HOST,
-        port=DB_PORT,
-        user=DB_USER,
-        password=DB_PASSWORD,
-        database=DB_NAME,
-        charset="utf8mb4",
-        autocommit=False,
-        cursorclass=pymysql.cursors.DictCursor
-    )
+def get_engine():
+    load_dotenv()
+
+    db_user = os.getenv("MYSQL_USER")
+    db_password = os.getenv("MYSQL_PASSWORD")
+    db_host = os.getenv("MYSQL_HOST", "localhost")
+    db_port = os.getenv("MYSQL_PORT", "3306")
+    db_name = os.getenv("MYSQL_DATABASE")
+
+    if not all([db_user, db_password, db_name]):
+        raise ValueError("MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE 환경변수를 확인하세요.")
+
+    db_url = f"mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}?charset=utf8mb4"
+    engine = create_engine(db_url)
+    return engine
 
 
-# --------------------------------------------------
-# CSV 읽기
-# --------------------------------------------------
-def read_csv_file(file_path: Path) -> pd.DataFrame:
-    if not file_path.exists():
-        raise FileNotFoundError(f"파일이 없습니다: {file_path}")
-    return pd.read_csv(file_path, encoding="utf-8-sig")
-
-
-# --------------------------------------------------
-# NaN -> None 변환
-# --------------------------------------------------
-def convert_nan_to_none(value):
-    if pd.isna(value):
-        return None
-    return value
-
-
-# --------------------------------------------------
-# 충전소(station) 삽입
-# --------------------------------------------------
-def insert_station_data(conn, df: pd.DataFrame):
-    sql = """
-    INSERT INTO charger_station (
-        station_source_id,
-        station_name,
-        address,
-        address_detail,
-        region_name,
-        latitude,
-        longitude,
-        operator_name,
-        available_time,
-        phone,
-        registered_at
-    )
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-    ON DUPLICATE KEY UPDATE
-        station_name = VALUES(station_name),
-        address = VALUES(address),
-        address_detail = VALUES(address_detail),
-        region_name = VALUES(region_name),
-        latitude = VALUES(latitude),
-        longitude = VALUES(longitude),
-        operator_name = VALUES(operator_name),
-        available_time = VALUES(available_time),
-        phone = VALUES(phone),
-        registered_at = VALUES(registered_at)
-    """
-
-    rows = []
-    for _, row in df.iterrows():
-        rows.append((
-            convert_nan_to_none(row.get("station_source_id")),
-            convert_nan_to_none(row.get("station_name")),
-            convert_nan_to_none(row.get("address")),
-            convert_nan_to_none(row.get("address_detail")),
-            convert_nan_to_none(row.get("region_name")),
-            convert_nan_to_none(row.get("latitude")),
-            convert_nan_to_none(row.get("longitude")),
-            convert_nan_to_none(row.get("operator_name")),
-            convert_nan_to_none(row.get("available_time")),
-            convert_nan_to_none(row.get("phone")),
-            convert_nan_to_none(row.get("registered_at")),
-        ))
-
-    with conn.cursor() as cursor:
-        cursor.executemany(sql, rows)
-
-
-# --------------------------------------------------
-# 충전기(charger) 삽입
-# charger_station 테이블의 station_id를 찾아 연결
-# --------------------------------------------------
-def insert_charger_data(conn, df: pd.DataFrame):
-    find_station_sql = """
-    SELECT station_id
-    FROM charger_station
-    WHERE station_source_id = %s
-    LIMIT 1
-    """
+def insert_region_master(engine):
+    region_master_rows = [
+        ("서울", 1),
+        ("부산", 2),
+        ("대구", 3),
+        ("인천", 4),
+        ("광주", 5),
+        ("대전", 6),
+        ("울산", 7),
+        ("세종", 8),
+        ("경기", 9),
+        ("강원", 10),
+        ("충북", 11),
+        ("충남", 12),
+        ("전북", 13),
+        ("전남", 14),
+        ("경북", 15),
+        ("경남", 16),
+        ("제주", 17),
+        ("합계", 99),
+    ]
 
     insert_sql = """
-    INSERT INTO charge_info (
-        charger_source_id,
-        station_id,
-        charge_type,
-        status_name,
-        operator_name
-    )
-    VALUES (%s, %s, %s, %s, %s)
+    INSERT INTO region_master (region_name, region_order)
+    VALUES (:region_name, :region_order)
     ON DUPLICATE KEY UPDATE
-        station_id = VALUES(station_id),
-        charge_type = VALUES(charge_type),
-        status_name = VALUES(status_name),
-        operator_name = VALUES(operator_name)
+        region_name = VALUES(region_name),
+        region_order = VALUES(region_order)
     """
 
-    with conn.cursor() as cursor:
-        for _, row in df.iterrows():
-            station_source_id = convert_nan_to_none(row.get("station_source_id"))
-
-            cursor.execute(find_station_sql, (station_source_id,))
-            station_result = cursor.fetchone()
-
-            if not station_result:
-                print(f"[WARN] station_source_id 매칭 실패: {station_source_id}")
-                continue
-
-            station_id = station_result["station_id"]
-
-            cursor.execute(
-                insert_sql,
-                (
-                    convert_nan_to_none(row.get("charger_source_id")),
-                    station_id,
-                    convert_nan_to_none(row.get("charge_type")),
-                    convert_nan_to_none(row.get("status_name")),
-                    convert_nan_to_none(row.get("operator_name")),
-                )
+    with engine.begin() as conn:
+        for region_name, region_order in region_master_rows:
+            conn.execute(
+                text(insert_sql),
+                {
+                    "region_name": region_name,
+                    "region_order": region_order
+                }
             )
 
+    print("[완료] region_master 적재 완료")
 
-# --------------------------------------------------
-# 실행
-# --------------------------------------------------
+
+def insert_ev_registration_monthly(engine):
+    df = pd.read_csv(LONG_FILE)
+
+    # 날짜형 변환
+    df["년월"] = pd.to_datetime(df["년월"])
+
+    # 컬럼명 DB 적재용 변환
+    db_df = df.rename(columns={
+        "년월": "base_ym"
+    }).copy()
+
+    # region_master와 join하기 위해 region_name 사용
+    region_df = pd.read_sql("SELECT region_id, region_name FROM region_master", con=engine)
+    db_df = db_df.merge(region_df, on="region_name", how="left")
+
+    if db_df["region_id"].isna().any():
+        bad_rows = db_df[db_df["region_id"].isna()][["region_name"]].drop_duplicates()
+        raise ValueError(f"region_id 매핑 실패:\n{bad_rows}")
+
+    final_df = db_df[[
+        "base_ym",
+        "year_num",
+        "month_num",
+        "region_id",
+        "cumulative_count",
+        "monthly_increase",
+        "yoy_diff",
+        "share_pct",
+        "region_order",
+        "is_latest_ym"
+    ]].copy()
+
+    with engine.begin() as conn:
+        # 기존 데이터 삭제 후 재적재 방식
+        conn.execute(text("DELETE FROM ev_registration_monthly"))
+
+    final_df.to_sql(
+        name="ev_registration_monthly",
+        con=engine,
+        if_exists="append",
+        index=False,
+        method="multi",
+        chunksize=1000
+    )
+
+    print("[완료] ev_registration_monthly 적재 완료")
+    print(final_df.head())
+
+
 def run():
-    station_df = read_csv_file(STATION_FILE)
-    charger_df = read_csv_file(CHARGER_FILE)
-
-    conn = get_connection()
-
-    try:
-        print("charger_station 적재 시작...")
-        insert_station_data(conn, station_df)
-        conn.commit()
-        print("charger_station 적재 완료")
-
-        print("charge_info 적재 시작...")
-        insert_charger_data(conn, charger_df)
-        conn.commit()
-        print("charge_info 적재 완료")
-
-    except Exception as e:
-        conn.rollback()
-        print("에러 발생, 롤백합니다.")
-        print(e)
-
-    finally:
-        conn.close()
+    engine = get_engine()
+    insert_region_master(engine)
+    insert_ev_registration_monthly(engine)
+    print("[전체 완료] MySQL 적재 완료")
 
 
 if __name__ == "__main__":
