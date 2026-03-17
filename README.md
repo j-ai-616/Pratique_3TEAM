@@ -15,11 +15,16 @@
   - 충전소 위치 및 충전 정보 제공
   - 전기차 보조금 및 정책 FAQ 제공
   - Streamlit 기반 통합 정보 서비스 구현
--- **개인 추가 학습**: Streamlit Cloud + AWS RDS(MySQL) 배포
-🔗 https://pratique-3team.streamlit.app
+- [Streamlit Cloud + AWS RDS(MySQL) 웹앱 배포](https://pratique-3team.streamlit.app)
 
 ---
- 
+
+## 📎 발표자료
+
+- [발표자료 PDF 보기](./docs/presentation.pdf)
+
+---
+
 ## 👥 팀 소개
 
 ### 1) 팀명
@@ -171,11 +176,27 @@
 │     │  ├─ seoul_ev_faq_categorized.xlsx
 │     │  └─ wordcloud.png
 │     │
-│     └─ 신혜지/                # 현대 FAQ / 뉴스 수집 관련 파일
-│        ├─ hyundai_faq.py
-│        ├─ hyundai_faq_api_data.xlsx
-│        ├─ naver_news.py
-│        └─ naver_news_result.csv
+│     ├─ 신혜지/                # 현대 FAQ / 뉴스 수집 관련 파일
+│     │  ├─ hyundai_faq.py
+│     │  ├─ hyundai_faq_api_data.xlsx
+│     │  ├─ naver_news.py
+│     │  └─ naver_news_result.csv
+│     │
+│     ├─ 김지효/                # 국고 보조금 / 지자체 보조금 수집 관련 파일
+│     │  ├─ 1_국고보조금.py
+│     │  ├─ 2_국고보조금_수소차.py
+│     │  ├─ 3_지자체보조금.py
+│     │  ├─ 무공해_국고보조금v2.xlsx
+│     │  └─ 무공해_지자체_보조금.xlsx
+│     │
+│     └─ 이건우/                # 전기차 브랜드 별 FAQ 수집 관련 파일
+│        ├─ bmw_article_crawler.py
+│        ├─ bmw_faq.xlsx
+│        ├─ byd_faq.xlsx
+│        ├─ kia_faq.xlsx
+│        ├─ kia_faq_crawler.py
+│        ├─ byd_faq_crawler.py
+│        └─ BYD_FAQ_Korean.xlsx
 │
 ├─ sql/
 │  ├─ schema.sql                # MySQL 테이블 생성 SQL
@@ -190,9 +211,6 @@
 │  └─ images/                   # 문서용 이미지
 │     ├─ 1_team_introduction.png
 │     └─ 7_together.png
-│
-├─ db/
-│  └─ query_data.py             # 별도 보관된/중복된 query_data 스크립트
 │
 └─ src/
    ├─ __init__.py               # src 패키지 선언
@@ -286,30 +304,22 @@ streamlit run ./src/app/main_app.py
 
 ---
 
-## ✅ WBS & 요구사항 명세서
+## ✅ WBS
 
 ![image](./docs/images/WBS_table.png)
-
-| No | 요구사항명 | 구현 여부 | 우선순위 | 상세 설명 | 비고 |
-|-----|-----|------|-----|-----|-----|
-| 1 | 지역별 전기차 등록 현황 제공 | 진행중 | 상 | 지역별 전기차 등록 데이터 수집 및 시각화 |  |
-| 2 | 충전소 위치 조회 | 진행중 | 상 | 카카오맵 기반 충전소 위치 제공 |  |
-| 3 | 충전기 상세 정보 제공 | 진행중 | 상 | 충전 가능 여부, 충전기 정보 제공 |  |
-| 4 | 보조금/정책 FAQ 제공 | 진행중 | 상 | FAQ 및 정책 정보 조회 기능 구현 |  |
-| 5 | 전기차 관련 기사 크롤링 | 예정 | 중 | 기사 데이터 수집 및 키워드 분석 | 확장 기능 |
-
----
-
-## 🏞️ ERD
-![ERD](./docs/ERD.png)
-- 관계있는 모든 엔터티는 1:N 비식별 관계이며, 독립 엔터티 중 faq_item은 정규화 과정을 통해 분리할 수도 있으나 이번 프로젝트에서는 분리하지 않았습니다.
 
 ---
 
 ## 📂 문서
 
 - [프로젝트 설명 문서](./docs/project_description.md)
-- [파이썬 패키지 설명 문서](./docs/requirements.md)
+- [요구사항 명세서](./docs/requirements.md)
+
+---
+
+## 🏞️ ERD
+![ERD](./docs/ERD.png)
+- 관계있는 모든 엔터티는 1:N 비식별 관계이며, 독립 엔터티 중 faq_item은 정규화 과정을 통해 분리할 수도 있으나 이번 프로젝트에서는 분리하지 않았습니다.
 
 ---
 
