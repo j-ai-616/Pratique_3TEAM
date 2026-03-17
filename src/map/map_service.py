@@ -1,5 +1,14 @@
+import os
+from pathlib import Path
+
 import requests
-from src.config.settings import KAKAO_REST_API_KEY
+import streamlit as st
+from dotenv import load_dotenv
+
+
+BASE_DIR = Path(__file__).resolve().parents[2]
+ENV_PATH = BASE_DIR / ".env"
+load_dotenv(ENV_PATH)
 
 
 EV_KEYWORDS = [
@@ -9,6 +18,17 @@ EV_KEYWORDS = [
     "충전소",
     "충전기",
 ]
+
+
+def get_kakao_rest_api_key() -> str:
+    try:
+        secret_key = st.secrets.get("KAKAO_REST_API_KEY", "")
+        if secret_key:
+            return str(secret_key).strip()
+    except Exception:
+        pass
+
+    return os.getenv("KAKAO_REST_API_KEY", "").strip()
 
 
 def _is_ev_related(doc: dict) -> bool:
@@ -26,10 +46,12 @@ def _is_ev_related(doc: dict) -> bool:
 
 
 def search_ev_chargers(region_keyword: str):
+    kakao_rest_api_key = get_kakao_rest_api_key()
+
     debug_info = {
         "input_keyword": region_keyword,
         "query_used": None,
-        "has_rest_key": bool(KAKAO_REST_API_KEY),
+        "has_rest_key": bool(kakao_rest_api_key),
         "status_code": None,
         "response_preview": None,
         "error": None,
@@ -39,7 +61,7 @@ def search_ev_chargers(region_keyword: str):
         debug_info["error"] = "검색어가 비어 있습니다."
         return [], debug_info
 
-    if not KAKAO_REST_API_KEY:
+    if not kakao_rest_api_key:
         debug_info["error"] = "KAKAO_REST_API_KEY 가 비어 있습니다."
         return [], debug_info
 
@@ -50,7 +72,7 @@ def search_ev_chargers(region_keyword: str):
     try:
         resp = requests.get(
             "https://dapi.kakao.com/v2/local/search/keyword.json",
-            headers={"Authorization": f"KakaoAK {KAKAO_REST_API_KEY}"},
+            headers={"Authorization": f"KakaoAK {kakao_rest_api_key}"},
             params={
                 "query": query,
                 "size": 15,

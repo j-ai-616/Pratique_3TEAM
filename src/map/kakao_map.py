@@ -1,11 +1,33 @@
 import json
 import html
+import os
+
+import streamlit as st
 import streamlit.components.v1 as components
-from src.config.settings import KAKAO_JAVASCRIPT_KEY
+from dotenv import load_dotenv
+from pathlib import Path
+
+
+BASE_DIR = Path(__file__).resolve().parents[2]
+ENV_PATH = BASE_DIR / ".env"
+load_dotenv(ENV_PATH)
+
+
+def get_kakao_javascript_key() -> str:
+    try:
+        secret_key = st.secrets.get("KAKAO_JAVASCRIPT_KEY", "")
+        if secret_key:
+            return str(secret_key).strip()
+    except Exception:
+        pass
+
+    return os.getenv("KAKAO_JAVASCRIPT_KEY", "").strip()
 
 
 def render_kakao_map(search_results):
-    if not KAKAO_JAVASCRIPT_KEY:
+    kakao_javascript_key = get_kakao_javascript_key()
+
+    if not kakao_javascript_key:
         components.html(
             """
             <div style="padding:16px; color:red; font-weight:bold;">
@@ -27,7 +49,7 @@ def render_kakao_map(search_results):
                 "road_address": html.escape(str(loc.get("road_address", ""))),
                 "phone": html.escape(str(loc.get("phone", ""))),
                 "category": html.escape(str(loc.get("category", ""))),
-                "place_url": str(loc.get("place_url", "")),
+                "place_url": html.escape(str(loc.get("place_url", ""))),
             }
         )
 
@@ -112,20 +134,36 @@ def render_kakao_map(search_results):
                             return;
                         }}
 
+                        var validLocations = locations.filter(function(loc) {{
+                            return (
+                                loc &&
+                                loc.lat !== null &&
+                                loc.lat !== undefined &&
+                                loc.lng !== null &&
+                                loc.lng !== undefined &&
+                                !isNaN(Number(loc.lat)) &&
+                                !isNaN(Number(loc.lng))
+                            );
+                        }});
+
+                        if (validLocations.length === 0) {{
+                            showEmptyMessage();
+                            return;
+                        }}
+
                         var container = document.getElementById('map');
                         var options = {{
-                            center: new window.kakao.maps.LatLng(locations[0].lat, locations[0].lng),
+                            center: new window.kakao.maps.LatLng(validLocations[0].lat, validLocations[0].lng),
                             level: 5
                         }};
 
                         var map = new window.kakao.maps.Map(container, options);
                         var bounds = new window.kakao.maps.LatLngBounds();
 
-                        // 현재 열린 정보창 1개만 관리
                         var currentInfowindow = null;
 
-                        locations.forEach(function(loc) {{
-                            var position = new window.kakao.maps.LatLng(loc.lat, loc.lng);
+                        validLocations.forEach(function(loc) {{
+                            var position = new window.kakao.maps.LatLng(Number(loc.lat), Number(loc.lng));
                             bounds.extend(position);
 
                             var marker = new window.kakao.maps.Marker({{
@@ -157,7 +195,6 @@ def render_kakao_map(search_results):
                             }});
                         }});
 
-                        // 지도 빈 곳 클릭 시 닫기
                         window.kakao.maps.event.addListener(map, 'click', function() {{
                             if (currentInfowindow) {{
                                 currentInfowindow.close();
@@ -170,7 +207,7 @@ def render_kakao_map(search_results):
                 }}
 
                 var script = document.createElement("script");
-                script.src = "https://dapi.kakao.com/v2/maps/sdk.js?appkey={KAKAO_JAVASCRIPT_KEY}&autoload=false";
+                script.src = "https://dapi.kakao.com/v2/maps/sdk.js?appkey={kakao_javascript_key}&autoload=false";
                 script.onload = initMap;
                 script.onerror = function() {{
                     document.body.innerHTML += '<p style="color:red;">카카오맵 SDK 스크립트 로드 오류</p>';
