@@ -1,10 +1,67 @@
 # src/data/region_processing.py
 
+# 이 스크립트는 전기차 등록 현황 데이터에서 사용되는 "지역명 표준화"와
+# "지역 정렬 순서 부여"를 담당하는 공통 기준 스크립트입니다.
+#
+# 이 스크립트의 핵심 역할은 다음과 같습니다.
+#
+# 1) 지역명 표준화
+#    - 원본 데이터에는 "서울특별시", "경기도", "강원특별자치도", "총계"처럼
+#      길거나 표기가 제각각인 지역명이 들어 있을 수 있습니다.
+#    - 이 스크립트는 이를 "서울", "경기", "강원", "합계"처럼
+#      프로젝트 내부에서 일관되게 사용할 표준 지역명으로 변환합니다.
+#
+# 2) 지역 정렬 기준 제공
+#    - 지역 데이터를 표나 그래프에 표시할 때
+#      가나다순이 아니라 프로젝트에서 정한 고정 순서로 정렬할 수 있도록
+#      REGION_ORDER 목록과 get_region_order() 함수를 제공합니다.
+#
+# 이 스크립트는 직접 Streamlit 화면을 그리거나 DB를 조회하지 않습니다.
+# 대신 다른 데이터 전처리/가공 스크립트에서 공통 기준 모듈처럼 import해서 사용합니다.
+#
+# 이 스크립트와 상호작용하는 주요 스크립트는 다음과 같습니다.
+#
+# 1) src/data/clean_ev_data.py
+#    - 가장 직접적으로 연결되는 스크립트입니다.
+#    - 원본 전기차 등록 현황 엑셀의 컬럼명을 정리할 때
+#      standardize_region_name()을 사용해 지역명을 표준화합니다.
+#    - 또한 REGION_ORDER를 기준으로 컬럼 순서를 맞추고,
+#      long 형태 변환 시 region_order를 부여할 때도 활용합니다.
+#
+# 2) 지역별 전기차 등록 현황 관련 분석/렌더링 스크립트
+#    - 예: region_ev_section.py 또는 query_data.py 내부의 지역 처리 로직
+#    - 지역명을 일관되게 맞추거나, 화면에 표시할 순서를 고정할 때 사용될 수 있습니다.
+#
+# 전체 흐름을 간단히 정리하면 다음과 같습니다.
+#
+# 원본 지역명 데이터
+#   -> region_processing.py
+#      - standardize_region_name()으로 표준화
+#      - get_region_order()로 정렬 기준 부여
+#   -> clean_ev_data.py / query_data.py / region 관련 화면 스크립트
+#   -> 최종 분석 및 시각화
+#
+# 정리하면,
+# 이 스크립트는 프로젝트 전체에서 지역명 처리의 기준점 역할을 하는
+# "지역명 표준화 및 정렬 순서 전담 유틸 스크립트"입니다.
+
+
+# 프로젝트에서 사용할 지역 표시 순서를 정의한 목록입니다.
+# 이 순서는 wide 데이터 컬럼 정렬, long 데이터의 region_order 부여,
+# 차트나 표에서 지역 표시 순서를 고정할 때 사용됩니다.
 REGION_ORDER = [
     "서울", "부산", "대구", "인천", "광주", "대전", "울산", "세종",
     "경기", "강원", "충북", "충남", "전북", "전남", "경북", "경남", "제주", "합계"
 ]
 
+# 원본 데이터에 들어올 수 있는 다양한 지역명 표기를
+# 프로젝트 내부 표준 지역명으로 바꾸기 위한 매핑 딕셔너리입니다.
+#
+# 예:
+# - "서울특별시" -> "서울"
+# - "경기도" -> "경기"
+# - "강원특별자치도" -> "강원"
+# - "총계" -> "합계"
 REGION_ALIAS_MAP = {
     "서울특별시": "서울",
     "부산광역시": "부산",
@@ -30,13 +87,27 @@ REGION_ALIAS_MAP = {
 }
 
 def standardize_region_name(region_name: str) -> str:
+    # 입력된 region_name이 None이면 그대로 반환합니다.
+    # None을 문자열로 바꾸지 않고 원형을 유지해 후속 처리에서 안전하게 다룰 수 있게 합니다.
     if region_name is None:
         return region_name
+
+    # region_name을 문자열로 변환한 뒤 앞뒤 공백을 제거합니다.
+    # 예: " 서울특별시 " -> "서울특별시"
     region_name = str(region_name).strip()
+
+    # REGION_ALIAS_MAP에 정의된 별칭이면 표준 지역명으로 변환하고,
+    # 매핑 정보가 없으면 원래 문자열을 그대로 반환합니다.
     return REGION_ALIAS_MAP.get(region_name, region_name)
 
 def get_region_order(region_name: str) -> int:
+    # 입력된 region_name이 REGION_ORDER 목록에 있으면
+    # 그 위치(index)에 1을 더한 값을 반환합니다.
+    # 예: "서울" -> 1, "부산" -> 2
     try:
         return REGION_ORDER.index(region_name) + 1
+
+    # REGION_ORDER에 없는 지역명이라면 예외가 발생하므로
+    # 아주 뒤쪽으로 밀리도록 큰 값(999)을 반환합니다.
     except ValueError:
         return 999
