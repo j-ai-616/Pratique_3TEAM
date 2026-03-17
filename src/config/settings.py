@@ -1,8 +1,8 @@
 import os
 from pathlib import Path
 
-from dotenv import load_dotenv
 import streamlit as st
+from dotenv import load_dotenv
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
 ENV_PATH = ROOT_DIR / ".env"
@@ -17,20 +17,19 @@ def _get_secret(key: str, default: str = "") -> str:
             return str(value).strip()
     except Exception:
         pass
-
     return os.getenv(key, default).strip()
 
 
 def get_mysql_config() -> dict:
     try:
-        mysql_section = st.secrets.get("mysql", {})
-        if mysql_section:
+        mysql = st.secrets.get("mysql", {})
+        if mysql:
             return {
-                "user": str(mysql_section.get("user", "")).strip(),
-                "password": str(mysql_section.get("password", "")).strip(),
-                "host": str(mysql_section.get("host", "127.0.0.1")).strip(),
-                "port": str(mysql_section.get("port", "3306")).strip(),
-                "database": str(mysql_section.get("database", "")).strip(),
+                "user": str(mysql.get("user", "")).strip(),
+                "password": str(mysql.get("password", "")).strip(),
+                "host": str(mysql.get("host", "127.0.0.1")).strip(),
+                "port": str(mysql.get("port", "3306")).strip(),
+                "database": str(mysql.get("database", "")).strip(),
             }
     except Exception:
         pass

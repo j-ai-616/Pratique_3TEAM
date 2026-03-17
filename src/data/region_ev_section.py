@@ -56,6 +56,7 @@ from pathlib import Path
 
 # 운영체제 환경변수에 접근하기 위한 표준 라이브러리입니다.
 # MySQL 접속 정보(MYSQL_USER 등)를 읽을 때 사용합니다.
+import os
 
 # 표 형태 데이터(DataFrame)를 다루기 위한 pandas 라이브러리입니다.
 # DB 조회 결과를 DataFrame으로 받고, 전처리, 집계, 피벗, 날짜/숫자 변환 등에 사용합니다.
@@ -67,6 +68,10 @@ import streamlit as st
 
 # .env 파일을 읽어 환경변수로 로드하는 라이브러리입니다.
 # DB 접속 정보가 코드에 직접 노출되지 않도록 하기 위해 사용합니다.
+from dotenv import load_dotenv
+
+# settings.py 에서 Streamlit secrets / .env 공통 로딩을 사용합니다.
+from src.config.settings import get_mysql_config
 
 # SQLAlchemy의 create_engine 함수입니다.
 # MySQL DB에 연결할 엔진 객체를 만들 때 사용합니다.
@@ -79,7 +84,15 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 
-from src.config.settings import get_mysql_config
+# 현재 파일이 위치한 경로를 기준으로 프로젝트 루트(BASE_DIR)를 계산합니다.
+# 예: src/data/이파일.py -> 두 단계 위 폴더를 프로젝트 루트로 간주합니다.
+BASE_DIR = Path(__file__).resolve().parents[2]
+
+# 프로젝트 루트 바로 아래의 .env 파일 경로를 계산합니다.
+ENV_PATH = BASE_DIR / ".env"
+
+# .env 파일을 읽어 환경변수로 로드합니다.
+load_dotenv(ENV_PATH)
 
 
 # ---------------------------------------------------
@@ -87,7 +100,7 @@ from src.config.settings import get_mysql_config
 # ---------------------------------------------------
 @st.cache_resource
 def get_db_engine():
-    # settings.py를 통해 Streamlit secrets 또는 .env 에서 MySQL 접속 정보를 읽습니다.
+    # Streamlit Cloud 에서는 st.secrets, 로컬에서는 .env 값을 우선 사용합니다.
     mysql_config = get_mysql_config()
 
     db_user = mysql_config.get("user")
@@ -96,26 +109,14 @@ def get_db_engine():
     db_port = mysql_config.get("port", "3306")
     db_name = mysql_config.get("database")
 
-    # 필수 접속 정보(user, password, db_name)가 하나라도 없으면 예외를 발생시킵니다.
     if not all([db_user, db_password, db_name]):
-        raise ValueError("MySQL 접속 정보가 없습니다. Streamlit secrets 또는 .env 를 확인하세요.")
+        raise ValueError("DB 접속 정보가 없습니다. Streamlit secrets 또는 .env를 확인하세요.")
 
-    # Streamlit Community Cloud 에서는 127.0.0.1(localhost) DB에 접속할 수 없습니다.
-    if str(db_host).strip() in {"127.0.0.1", "localhost"}:
-        raise ValueError(
-            "현재 MySQL host가 127.0.0.1(localhost)로 설정되어 있습니다. "
-            "Streamlit Cloud에서는 로컬 PC의 MySQL에 접속할 수 없습니다. "
-            "외부 접속 가능한 MySQL host를 사용해야 합니다."
-        )
-
-    # SQLAlchemy용 MySQL 접속 URL 문자열을 생성합니다.
-    # 문자셋은 utf8mb4로 설정해 한글 등 멀티바이트 문자를 안전하게 처리합니다.
     db_url = (
         f"mysql+pymysql://{db_user}:{db_password}"
         f"@{db_host}:{db_port}/{db_name}?charset=utf8mb4"
     )
 
-    # create_engine()으로 DB 엔진 객체를 생성해 반환합니다.
     return create_engine(db_url)
 
 
@@ -126,6 +127,60 @@ def read_sql_df(query: str) -> pd.DataFrame:
 
     # 주어진 SQL 쿼리를 실행하여 결과를 pandas DataFrame으로 읽어옵니다.
     return pd.read_sql(query, con=engine)
+
+
+@st.cache_data(ttl=300)
+def load_monthly_data_from_file() -> pd.DataFrame:
+    # Streamlit Cloud 에서는 로컬 MySQL(127.0.0.1)에 접속할 수 없으므로
+    # 전처리된 CSV를 동일 스키마로 변환해 1페이지 화면을 유지합니다.
+    csv_path = BASE_DIR / "data" / "processed" / "ev_registration" / "ev_registration_monthly_long.csv"
+
+    if not csv_path.exists():
+        raise FileNotFoundError("ev_registration_monthly_long.csv 파일을 찾을 수 없습니다.")
+
+    df = pd.read_csv(csv_path)
+
+    rename_map = {
+        "년월": "base_ym",
+    }
+    df = df.rename(columns=rename_map)
+
+    required_columns = [
+        "base_ym",
+        "year_num",
+        "month_num",
+        "region_name",
+        "region_order",
+        "cumulative_count",
+        "monthly_increase",
+        "yoy_diff",
+        "share_pct",
+        "is_latest_ym",
+    ]
+
+    missing_columns = [column for column in required_columns if column not in df.columns]
+    if missing_columns:
+        raise ValueError(f"전처리 CSV에 필요한 컬럼이 없습니다: {missing_columns}")
+
+    df = df[required_columns].copy()
+    df["base_ym"] = pd.to_datetime(df["base_ym"], errors="coerce")
+
+    numeric_cols = [
+        "year_num",
+        "month_num",
+        "region_order",
+        "cumulative_count",
+        "monthly_increase",
+        "yoy_diff",
+        "share_pct",
+    ]
+
+    for col in numeric_cols:
+        df[col] = pd.to_numeric(df[col], errors="coerce")
+
+    df = df.dropna(subset=["base_ym", "region_name"]).copy()
+    df = df.sort_values(["region_order", "base_ym"]).reset_index(drop=True)
+    return df
 
 
 # ---------------------------------------------------
@@ -150,34 +205,28 @@ def load_monthly_data() -> pd.DataFrame:
     ORDER BY region_order, base_ym
     """
 
-    # SQL 결과를 DataFrame으로 읽어옵니다.
-    df = read_sql_df(query)
+    try:
+        df = read_sql_df(query)
 
-    # base_ym 컬럼을 날짜형(datetime)으로 변환합니다.
-    # 변환 실패 시 NaT로 처리합니다.
-    df["base_ym"] = pd.to_datetime(df["base_ym"], errors="coerce")
+        df["base_ym"] = pd.to_datetime(df["base_ym"], errors="coerce")
 
-    # 숫자형으로 다뤄야 하는 컬럼 목록입니다.
-    numeric_cols = [
-        "year_num",
-        "month_num",
-        "region_order",
-        "cumulative_count",
-        "monthly_increase",
-        "yoy_diff",
-        "share_pct",
-    ]
+        numeric_cols = [
+            "year_num",
+            "month_num",
+            "region_order",
+            "cumulative_count",
+            "monthly_increase",
+            "yoy_diff",
+            "share_pct",
+        ]
 
-    # 각 숫자형 컬럼을 숫자 타입으로 변환합니다.
-    # 변환 실패 값은 NaN으로 처리합니다.
-    for col in numeric_cols:
-        df[col] = pd.to_numeric(df[col], errors="coerce")
+        for col in numeric_cols:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
 
-    # base_ym 또는 region_name이 없는 행은 분석에 부적합하므로 제거합니다.
-    df = df.dropna(subset=["base_ym", "region_name"]).copy()
-
-    # 정리된 월별 데이터를 반환합니다.
-    return df
+        df = df.dropna(subset=["base_ym", "region_name"]).copy()
+        return df
+    except Exception:
+        return load_monthly_data_from_file()
 
 
 # ---------------------------------------------------
