@@ -1,14 +1,9 @@
-import streamlit as st
-import pymysql
+from __future__ import annotations
 
-conn = pymysql.connect(
-    host=st.secrets["mysql"]["host"],
-    user=st.secrets["mysql"]["user"],
-    password=st.secrets["mysql"]["password"],
-    port=st.secrets["mysql"]["port"],
-    database=st.secrets["mysql"]["database"],
-    charset="utf8mb4"
-)
+from pathlib import Path
+from typing import Iterable
+
+import pandas as pd
 
 # 이 스크립트는 전기차 정보 포털 프로젝트에서 사용하는
 # "공통 데이터 로딩 허브" 역할을 담당합니다.
