@@ -73,12 +73,15 @@ from dotenv import load_dotenv
 # SQLAlchemy의 create_engine 함수입니다.
 # MySQL DB에 연결할 엔진 객체를 만들 때 사용합니다.
 from sqlalchemy import create_engine
+from sqlalchemy.engine import URL
 
 # Plotly Express는 간단하게 선그래프, 막대그래프, 원형 차트 등을 만들기 위한 라이브러리입니다.
 import plotly.express as px
 
 # Plotly Graph Objects는 히트맵처럼 좀 더 세밀한 차트를 구성할 때 사용합니다.
 import plotly.graph_objects as go
+
+from src.config.settings import get_mysql_config
 
 
 # 현재 파일이 위치한 경로를 기준으로 프로젝트 루트(BASE_DIR)를 계산합니다.
@@ -97,32 +100,31 @@ load_dotenv(ENV_PATH)
 # ---------------------------------------------------
 @st.cache_resource
 def get_db_engine():
-    # 환경변수에서 MySQL 사용자명을 읽습니다.
-    db_user = os.getenv("MYSQL_USER")
+    # Streamlit Cloud에서는 st.secrets를 우선 사용하고,
+    # 로컬 실행 환경에서는 .env 값을 사용하도록 설정값을 가져옵니다.
+    db_config = get_mysql_config()
 
-    # 환경변수에서 MySQL 비밀번호를 읽습니다.
-    db_password = os.getenv("MYSQL_PASSWORD")
-
-    # 환경변수에서 MySQL 호스트를 읽습니다.
-    # 값이 없으면 기본값으로 127.0.0.1(localhost)을 사용합니다.
-    db_host = os.getenv("MYSQL_HOST", "127.0.0.1")
-
-    # 환경변수에서 MySQL 포트를 읽습니다.
-    # 값이 없으면 기본값 3306을 사용합니다.
-    db_port = os.getenv("MYSQL_PORT", "3306")
-
-    # 환경변수에서 사용할 데이터베이스 이름을 읽습니다.
-    db_name = os.getenv("MYSQL_DATABASE")
+    # MySQL 접속 정보를 설정값에서 읽습니다.
+    db_user = db_config.get("user", "")
+    db_password = db_config.get("password", "")
+    db_host = db_config.get("host", "127.0.0.1")
+    db_port = db_config.get("port", "3306")
+    db_name = db_config.get("database", "")
 
     # 필수 접속 정보(user, password, db_name)가 하나라도 없으면 예외를 발생시킵니다.
     if not all([db_user, db_password, db_name]):
         raise ValueError(".env 파일의 DB 환경변수를 확인하세요.")
 
-    # SQLAlchemy용 MySQL 접속 URL 문자열을 생성합니다.
+    # SQLAlchemy용 MySQL 접속 URL 객체를 생성합니다.
     # 문자셋은 utf8mb4로 설정해 한글 등 멀티바이트 문자를 안전하게 처리합니다.
-    db_url = (
-        f"mysql+pymysql://{db_user}:{db_password}"
-        f"@{db_host}:{db_port}/{db_name}?charset=utf8mb4"
+    db_url = URL.create(
+        "mysql+pymysql",
+        username=db_user,
+        password=db_password,
+        host=db_host,
+        port=int(db_port),
+        database=db_name,
+        query={"charset": "utf8mb4"},
     )
 
     # create_engine()으로 DB 엔진 객체를 생성해 반환합니다.
