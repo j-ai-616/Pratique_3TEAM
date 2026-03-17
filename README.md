@@ -15,6 +15,8 @@
   - 충전소 위치 및 충전 정보 제공
   - 전기차 보조금 및 정책 FAQ 제공
   - Streamlit 기반 통합 정보 서비스 구현
+-- **개인 추가 학습**: Streamlit Cloud + AWS RDS(MySQL) 배포
+🔗 https://pratique-3team.streamlit.app
 
 ---
  
