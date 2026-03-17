@@ -171,10 +171,8 @@ def render_kakao_map(search_results):
                     mapDiv.innerHTML = '<div class="error-box">' + msg + '</div>';
                 }}
 
-                setDebug("1) locations length = " + (locations ? locations.length : "null"));
-
-                function initMap() {{
-                    setDebug("2) initMap 진입");
+                function initMapDirect() {{
+                    setDebug("2) initMapDirect 진입");
 
                     try {{
                         if (!window.kakao) {{
@@ -189,125 +187,100 @@ def render_kakao_map(search_results):
                             return;
                         }}
 
-                        setDebug("5) kakao.maps.load 호출 직전");
+                        setDebug("5) locations length = " + (locations ? locations.length : "null"));
 
-                        window.kakao.maps.load(function() {{
-                            setDebug("6) kakao.maps.load 콜백 진입");
+                        if (!locations || locations.length === 0) {{
+                            setDebug("6) locations 비어 있음");
+                            showEmptyMessage();
+                            return;
+                        }}
 
-                            try {{
-                                if (!locations || locations.length === 0) {{
-                                    setDebug("7) locations 비어 있음");
-                                    showEmptyMessage();
-                                    return;
-                                }}
-
-                                var validLocations = locations.filter(function(loc) {{
-                                    return (
-                                        loc &&
-                                        loc.lat !== null &&
-                                        loc.lat !== undefined &&
-                                        loc.lng !== null &&
-                                        loc.lng !== undefined &&
-                                        !isNaN(Number(loc.lat)) &&
-                                        !isNaN(Number(loc.lng))
-                                    );
-                                }});
-
-                                setDebug("8) validLocations length = " + validLocations.length);
-
-                                if (validLocations.length === 0) {{
-                                    setDebug("9) 유효 좌표 없음");
-                                    showErrorMessage("지도에 표시할 좌표 데이터가 없습니다.");
-                                    return;
-                                }}
-
-                                var firstLat = Number(validLocations[0].lat);
-                                var firstLng = Number(validLocations[0].lng);
-                                setDebug("10) firstLat = " + firstLat + ", firstLng = " + firstLng);
-
-                                var container = document.getElementById("map");
-                                if (!container) {{
-                                    setDebug("11) map container 없음");
-                                    showErrorMessage("지도 컨테이너를 찾을 수 없습니다.");
-                                    return;
-                                }}
-
-                                var options = {{
-                                    center: new window.kakao.maps.LatLng(firstLat, firstLng),
-                                    level: 5
-                                }};
-
-                                setDebug("12) Map 생성 직전");
-                                var map = new window.kakao.maps.Map(container, options);
-                                setDebug("13) Map 생성 성공");
-
-                                var bounds = new window.kakao.maps.LatLngBounds();
-                                var currentInfowindow = null;
-
-                                validLocations.forEach(function(loc, idx) {{
-                                    var lat = Number(loc.lat);
-                                    var lng = Number(loc.lng);
-                                    var position = new window.kakao.maps.LatLng(lat, lng);
-                                    bounds.extend(position);
-
-                                    var marker = new window.kakao.maps.Marker({{
-                                        position: position,
-                                        map: map
-                                    }});
-
-                                    var content = `
-                                        <div class="info-wrap">
-                                            <div class="info-title">${{loc.name}}</div>
-                                            <div class="info-row"><b>도로명</b>: ${{loc.road_address || '-'}}</div>
-                                            <div class="info-row"><b>지번</b>: ${{loc.address || '-'}}</div>
-                                            <div class="info-row"><b>전화</b>: ${{loc.phone || '-'}}</div>
-                                            <div class="info-row"><b>분류</b>: ${{loc.category || '-'}}</div>
-                                            ${{loc.place_url ? `<a class="info-link" href="${{loc.place_url}}" target="_blank">카카오맵 상세보기</a>` : ''}}
-                                        </div>
-                                    `;
-
-                                    var infowindow = new window.kakao.maps.InfoWindow({{
-                                        content: content
-                                    }});
-
-                                    window.kakao.maps.event.addListener(marker, "click", function() {{
-                                        if (currentInfowindow) {{
-                                            currentInfowindow.close();
-                                        }}
-                                        infowindow.open(map, marker);
-                                        currentInfowindow = infowindow;
-                                    }});
-                                }});
-
-                                setDebug("14) marker 생성 완료");
-
-                                window.kakao.maps.event.addListener(map, "click", function() {{
-                                    if (currentInfowindow) {{
-                                        currentInfowindow.close();
-                                        currentInfowindow = null;
-                                    }}
-                                }});
-
-                                map.setBounds(bounds);
-                                setDebug("15) setBounds 완료");
-                            }} catch (err) {{
-                                setDebug("ERR(load callback): " + err.message);
-                                showErrorMessage("지도 초기화 오류: " + err.message);
-                            }}
+                        var validLocations = locations.filter(function(loc) {{
+                            return (
+                                loc &&
+                                loc.lat !== null &&
+                                loc.lat !== undefined &&
+                                loc.lng !== null &&
+                                loc.lng !== undefined &&
+                                !isNaN(Number(loc.lat)) &&
+                                !isNaN(Number(loc.lng))
+                            );
                         }});
+
+                        setDebug("7) validLocations length = " + validLocations.length);
+
+                        if (validLocations.length === 0) {{
+                            showErrorMessage("지도에 표시할 좌표 데이터가 없습니다.");
+                            return;
+                        }}
+
+                        var firstLat = Number(validLocations[0].lat);
+                        var firstLng = Number(validLocations[0].lng);
+                        setDebug("8) firstLat = " + firstLat + ", firstLng = " + firstLng);
+
+                        var container = document.getElementById("map");
+                        if (!container) {{
+                            showErrorMessage("지도 컨테이너를 찾을 수 없습니다.");
+                            return;
+                        }}
+
+                        var map = new window.kakao.maps.Map(container, {{
+                            center: new window.kakao.maps.LatLng(firstLat, firstLng),
+                            level: 5
+                        }});
+                        setDebug("9) Map 생성 성공");
+
+                        var bounds = new window.kakao.maps.LatLngBounds();
+                        var currentInfowindow = null;
+
+                        validLocations.forEach(function(loc) {{
+                            var position = new window.kakao.maps.LatLng(Number(loc.lat), Number(loc.lng));
+                            bounds.extend(position);
+
+                            var marker = new window.kakao.maps.Marker({{
+                                position: position,
+                                map: map
+                            }});
+
+                            var content = `
+                                <div class="info-wrap">
+                                    <div class="info-title">${{loc.name}}</div>
+                                    <div class="info-row"><b>도로명</b>: ${{loc.road_address || '-'}}</div>
+                                    <div class="info-row"><b>지번</b>: ${{loc.address || '-'}}</div>
+                                    <div class="info-row"><b>전화</b>: ${{loc.phone || '-'}}</div>
+                                    <div class="info-row"><b>분류</b>: ${{loc.category || '-'}}</div>
+                                    ${{loc.place_url ? `<a class="info-link" href="${{loc.place_url}}" target="_blank">카카오맵 상세보기</a>` : ''}}
+                                </div>
+                            `;
+
+                            var infowindow = new window.kakao.maps.InfoWindow({{
+                                content: content
+                            }});
+
+                            window.kakao.maps.event.addListener(marker, "click", function() {{
+                                if (currentInfowindow) {{
+                                    currentInfowindow.close();
+                                }}
+                                infowindow.open(map, marker);
+                                currentInfowindow = infowindow;
+                            }});
+                        }});
+
+                        map.setBounds(bounds);
+                        setDebug("10) setBounds 완료");
                     }} catch (err) {{
-                        setDebug("ERR(initMap): " + err.message);
-                        showErrorMessage("카카오맵 실행 오류: " + err.message);
+                        setDebug("ERR: " + err.message);
+                        showErrorMessage("지도 초기화 오류: " + err.message);
                     }}
                 }}
 
                 var script = document.createElement("script");
-                script.src = "https://dapi.kakao.com/v2/maps/sdk.js?appkey={kakao_javascript_key}&autoload=false";
+                script.src = "https://dapi.kakao.com/v2/maps/sdk.js?appkey={kakao_javascript_key}";
                 setDebug("0) SDK script append: " + script.src);
 
                 script.onload = function() {{
-                    setDebug("1-1) SDK script onload");
-                    initMap();
+                    setDebug("1) SDK script onload");
+                    initMapDirect();
                 }};
 
                 script.onerror = function() {{
