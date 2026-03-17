@@ -1,11 +1,49 @@
 import os
 from pathlib import Path
+
 from dotenv import load_dotenv
+import streamlit as st
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
 ENV_PATH = ROOT_DIR / ".env"
 
 load_dotenv(ENV_PATH)
 
-KAKAO_REST_API_KEY = os.getenv("KAKAO_REST_API_KEY", "").strip()
-KAKAO_JAVASCRIPT_KEY = os.getenv("KAKAO_JAVASCRIPT_KEY", "").strip()
+
+def _get_secret(key: str, default: str = "") -> str:
+    try:
+        value = st.secrets.get(key, default)
+        if value is not None and str(value).strip() != "":
+            return str(value).strip()
+    except Exception:
+        pass
+    return os.getenv(key, default).strip()
+
+
+def get_mysql_config() -> dict:
+    try:
+        if "mysql" in st.secrets:
+            mysql = st.secrets["mysql"]
+            return {
+                "user": str(mysql.get("user", "")).strip(),
+                "password": str(mysql.get("password", "")).strip(),
+                "host": str(mysql.get("host", "127.0.0.1")).strip(),
+                "port": str(mysql.get("port", "3306")).strip(),
+                "database": str(mysql.get("database", "")).strip(),
+            }
+    except Exception:
+        pass
+
+    return {
+        "user": os.getenv("MYSQL_USER", "").strip(),
+        "password": os.getenv("MYSQL_PASSWORD", "").strip(),
+        "host": os.getenv("MYSQL_HOST", "127.0.0.1").strip(),
+        "port": os.getenv("MYSQL_PORT", "3306").strip(),
+        "database": os.getenv("MYSQL_DATABASE", "").strip(),
+    }
+
+
+KAKAO_REST_API_KEY = _get_secret("KAKAO_REST_API_KEY")
+KAKAO_JAVASCRIPT_KEY = _get_secret("KAKAO_JAVASCRIPT_KEY")
+NAVER_CLIENT_ID = _get_secret("NAVER_CLIENT_ID")
+NAVER_CLIENT_SECRET = _get_secret("NAVER_CLIENT_SECRET")
