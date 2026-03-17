@@ -145,6 +145,8 @@ def render_kakao_map(search_results):
                 text-decoration: none;
             }}
         </style>
+
+        <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey={kakao_javascript_key}&libraries=services"></script>
     </head>
     <body>
         <div id="wrap">
@@ -171,26 +173,25 @@ def render_kakao_map(search_results):
                     mapDiv.innerHTML = '<div class="error-box">' + msg + '</div>';
                 }}
 
-                function initMapDirect() {{
-                    setDebug("2) initMapDirect 진입");
-
+                function initMap() {{
                     try {{
+                        setDebug("1) initMap 진입");
+
                         if (!window.kakao) {{
-                            setDebug("3) window.kakao 없음");
                             showErrorMessage("window.kakao 객체가 없습니다.");
                             return;
                         }}
 
                         if (!window.kakao.maps) {{
-                            setDebug("4) window.kakao.maps 없음");
                             showErrorMessage("window.kakao.maps 객체가 없습니다.");
                             return;
                         }}
 
-                        setDebug("5) locations length = " + (locations ? locations.length : "null"));
+                        setDebug("2) locations length = " + (locations ? locations.length : "null"));
+                        setDebug("3) typeof kakao.maps.LatLng = " + typeof window.kakao.maps.LatLng);
+                        setDebug("4) typeof kakao.maps.Map = " + typeof window.kakao.maps.Map);
 
                         if (!locations || locations.length === 0) {{
-                            setDebug("6) locations 비어 있음");
                             showEmptyMessage();
                             return;
                         }}
@@ -207,7 +208,7 @@ def render_kakao_map(search_results):
                             );
                         }});
 
-                        setDebug("7) validLocations length = " + validLocations.length);
+                        setDebug("5) validLocations length = " + validLocations.length);
 
                         if (validLocations.length === 0) {{
                             showErrorMessage("지도에 표시할 좌표 데이터가 없습니다.");
@@ -216,7 +217,7 @@ def render_kakao_map(search_results):
 
                         var firstLat = Number(validLocations[0].lat);
                         var firstLng = Number(validLocations[0].lng);
-                        setDebug("8) firstLat = " + firstLat + ", firstLng = " + firstLng);
+                        setDebug("6) firstLat = " + firstLat + ", firstLng = " + firstLng);
 
                         var container = document.getElementById("map");
                         if (!container) {{
@@ -224,20 +225,22 @@ def render_kakao_map(search_results):
                             return;
                         }}
 
-                        var map = new window.kakao.maps.Map(container, {{
-                            center: new window.kakao.maps.LatLng(firstLat, firstLng),
+                        var center = new kakao.maps.LatLng(firstLat, firstLng);
+                        var map = new kakao.maps.Map(container, {{
+                            center: center,
                             level: 5
                         }});
-                        setDebug("9) Map 생성 성공");
 
-                        var bounds = new window.kakao.maps.LatLngBounds();
+                        setDebug("7) Map 생성 성공");
+
+                        var bounds = new kakao.maps.LatLngBounds();
                         var currentInfowindow = null;
 
                         validLocations.forEach(function(loc) {{
-                            var position = new window.kakao.maps.LatLng(Number(loc.lat), Number(loc.lng));
+                            var position = new kakao.maps.LatLng(Number(loc.lat), Number(loc.lng));
                             bounds.extend(position);
 
-                            var marker = new window.kakao.maps.Marker({{
+                            var marker = new kakao.maps.Marker({{
                                 position: position,
                                 map: map
                             }});
@@ -253,11 +256,11 @@ def render_kakao_map(search_results):
                                 </div>
                             `;
 
-                            var infowindow = new window.kakao.maps.InfoWindow({{
+                            var infowindow = new kakao.maps.InfoWindow({{
                                 content: content
                             }});
 
-                            window.kakao.maps.event.addListener(marker, "click", function() {{
+                            kakao.maps.event.addListener(marker, "click", function() {{
                                 if (currentInfowindow) {{
                                     currentInfowindow.close();
                                 }}
@@ -266,29 +269,26 @@ def render_kakao_map(search_results):
                             }});
                         }});
 
+                        kakao.maps.event.addListener(map, "click", function() {{
+                            if (currentInfowindow) {{
+                                currentInfowindow.close();
+                                currentInfowindow = null;
+                            }}
+                        }});
+
                         map.setBounds(bounds);
-                        setDebug("10) setBounds 완료");
+                        setDebug("8) setBounds 완료");
                     }} catch (err) {{
                         setDebug("ERR: " + err.message);
                         showErrorMessage("지도 초기화 오류: " + err.message);
                     }}
                 }}
 
-                var script = document.createElement("script");
-                script.src = "https://dapi.kakao.com/v2/maps/sdk.js?appkey={kakao_javascript_key}";
-                setDebug("0) SDK script append: " + script.src);
-
-                script.onload = function() {{
-                    setDebug("1) SDK script onload");
-                    initMapDirect();
-                }};
-
-                script.onerror = function() {{
-                    setDebug("ERR(script): SDK script onerror");
-                    showErrorMessage("카카오맵 SDK 스크립트 로드 오류");
-                }};
-
-                document.head.appendChild(script);
+                if (document.readyState === "loading") {{
+                    document.addEventListener("DOMContentLoaded", initMap);
+                }} else {{
+                    initMap();
+                }}
             }})();
         </script>
     </body>
