@@ -34,7 +34,7 @@ def render_kakao_map(search_results):
                 KAKAO_JAVASCRIPT_KEY 가 설정되지 않았습니다. .env 파일을 확인하세요.
             </div>
             """,
-            height=100,
+            height=120,
         )
         return
 
@@ -67,6 +67,21 @@ def render_kakao_map(search_results):
                 width: 100%;
                 height: 100%;
                 font-family: Arial, sans-serif;
+            }}
+            #wrap {{
+                width: 100%;
+            }}
+            #debug {{
+                font-size: 12px;
+                line-height: 1.5;
+                color: #374151;
+                background: #f9fafb;
+                border: 1px solid #e5e7eb;
+                border-radius: 10px;
+                padding: 10px;
+                margin-bottom: 10px;
+                white-space: pre-wrap;
+                word-break: break-word;
             }}
             #map {{
                 width: 100%;
@@ -132,11 +147,19 @@ def render_kakao_map(search_results):
         </style>
     </head>
     <body>
-        <div id="map"></div>
+        <div id="wrap">
+            <div id="debug">디버그 시작</div>
+            <div id="map"></div>
+        </div>
 
         <script>
             (function() {{
                 var locations = {locations_json};
+
+                function setDebug(msg) {{
+                    var debugDiv = document.getElementById("debug");
+                    debugDiv.textContent += "\\n" + msg;
+                }}
 
                 function showEmptyMessage() {{
                     var mapDiv = document.getElementById("map");
@@ -148,16 +171,32 @@ def render_kakao_map(search_results):
                     mapDiv.innerHTML = '<div class="error-box">' + msg + '</div>';
                 }}
 
+                setDebug("1) locations length = " + (locations ? locations.length : "null"));
+
                 function initMap() {{
+                    setDebug("2) initMap 진입");
+
                     try {{
-                        if (!window.kakao || !window.kakao.maps) {{
-                            showErrorMessage("카카오맵 SDK 로드 실패");
+                        if (!window.kakao) {{
+                            setDebug("3) window.kakao 없음");
+                            showErrorMessage("window.kakao 객체가 없습니다.");
                             return;
                         }}
 
+                        if (!window.kakao.maps) {{
+                            setDebug("4) window.kakao.maps 없음");
+                            showErrorMessage("window.kakao.maps 객체가 없습니다.");
+                            return;
+                        }}
+
+                        setDebug("5) kakao.maps.load 호출 직전");
+
                         window.kakao.maps.load(function() {{
+                            setDebug("6) kakao.maps.load 콜백 진입");
+
                             try {{
                                 if (!locations || locations.length === 0) {{
+                                    setDebug("7) locations 비어 있음");
                                     showEmptyMessage();
                                     return;
                                 }}
@@ -174,25 +213,38 @@ def render_kakao_map(search_results):
                                     );
                                 }});
 
+                                setDebug("8) validLocations length = " + validLocations.length);
+
                                 if (validLocations.length === 0) {{
+                                    setDebug("9) 유효 좌표 없음");
                                     showErrorMessage("지도에 표시할 좌표 데이터가 없습니다.");
                                     return;
                                 }}
 
-                                var container = document.getElementById("map");
                                 var firstLat = Number(validLocations[0].lat);
                                 var firstLng = Number(validLocations[0].lng);
+                                setDebug("10) firstLat = " + firstLat + ", firstLng = " + firstLng);
+
+                                var container = document.getElementById("map");
+                                if (!container) {{
+                                    setDebug("11) map container 없음");
+                                    showErrorMessage("지도 컨테이너를 찾을 수 없습니다.");
+                                    return;
+                                }}
 
                                 var options = {{
                                     center: new window.kakao.maps.LatLng(firstLat, firstLng),
                                     level: 5
                                 }};
 
+                                setDebug("12) Map 생성 직전");
                                 var map = new window.kakao.maps.Map(container, options);
+                                setDebug("13) Map 생성 성공");
+
                                 var bounds = new window.kakao.maps.LatLngBounds();
                                 var currentInfowindow = null;
 
-                                validLocations.forEach(function(loc) {{
+                                validLocations.forEach(function(loc, idx) {{
                                     var lat = Number(loc.lat);
                                     var lng = Number(loc.lng);
                                     var position = new window.kakao.maps.LatLng(lat, lng);
@@ -227,6 +279,8 @@ def render_kakao_map(search_results):
                                     }});
                                 }});
 
+                                setDebug("14) marker 생성 완료");
+
                                 window.kakao.maps.event.addListener(map, "click", function() {{
                                     if (currentInfowindow) {{
                                         currentInfowindow.close();
@@ -235,21 +289,32 @@ def render_kakao_map(search_results):
                                 }});
 
                                 map.setBounds(bounds);
+                                setDebug("15) setBounds 완료");
                             }} catch (err) {{
+                                setDebug("ERR(load callback): " + err.message);
                                 showErrorMessage("지도 초기화 오류: " + err.message);
                             }}
                         }});
                     }} catch (err) {{
+                        setDebug("ERR(initMap): " + err.message);
                         showErrorMessage("카카오맵 실행 오류: " + err.message);
                     }}
                 }}
 
                 var script = document.createElement("script");
                 script.src = "https://dapi.kakao.com/v2/maps/sdk.js?appkey={kakao_javascript_key}&autoload=false";
-                script.onload = initMap;
+                setDebug("0) SDK script append: " + script.src);
+
+                script.onload = function() {{
+                    setDebug("1-1) SDK script onload");
+                    initMap();
+                }};
+
                 script.onerror = function() {{
+                    setDebug("ERR(script): SDK script onerror");
                     showErrorMessage("카카오맵 SDK 스크립트 로드 오류");
                 }};
+
                 document.head.appendChild(script);
             }})();
         </script>
@@ -257,4 +322,4 @@ def render_kakao_map(search_results):
     </html>
     """
 
-    components.html(html_code, height=700)
+    components.html(html_code, height=820)
