@@ -10,7 +10,6 @@ conn = pymysql.connect(
     charset="utf8mb4"
 )
 
-
 from __future__ import annotations
 
 # 이 스크립트는 전기차 정보 포털 프로젝트에서 사용하는
