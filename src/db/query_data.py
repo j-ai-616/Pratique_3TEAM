@@ -1,3 +1,16 @@
+import streamlit as st
+import pymysql
+
+conn = pymysql.connect(
+    host=st.secrets["mysql"]["host"],
+    user=st.secrets["mysql"]["user"],
+    password=st.secrets["mysql"]["password"],
+    port=st.secrets["mysql"]["port"],
+    database=st.secrets["mysql"]["database"],
+    charset="utf8mb4"
+)
+
+
 from __future__ import annotations
 
 # 이 스크립트는 전기차 정보 포털 프로젝트에서 사용하는
