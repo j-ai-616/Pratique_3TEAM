@@ -25,6 +25,12 @@
 
 ---
 
+## 🎥 시연 영상
+
+- [YouTube에서 시연 영상 보기](https://youtu.be/NCBHpEbNsh4)
+
+---
+
 ## 👥 팀 소개
 
 ### 1) 팀명
@@ -318,8 +324,8 @@ streamlit run ./src/app/main_app.py
 ---
 
 ## 🏞️ ERD
-![ERD](./docs/ERD.png)
-- 관계있는 모든 엔터티는 1:N 비식별 관계이며, 독립 엔터티 중 faq_item은 정규화 과정을 통해 분리할 수도 있으나 이번 프로젝트에서는 분리하지 않았습니다.
+![ERD](./docs/first_ERD.png)
+- 관계있는 모든 엔터티는 1:N 비식별 관계입니다.
 
 ---
 
